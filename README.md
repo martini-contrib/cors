@@ -1,4 +1,4 @@
-# cors
+# cors [![wercker status](https://app.wercker.com/status/4d44f8169ae6c51d0f2d6ffe523bd72e "wercker status")](https://app.wercker.com/project/bykey/4d44f8169ae6c51d0f2d6ffe523bd72e)
 
 Martini middleware/handler to enable CORS support.
 
