@@ -116,6 +116,22 @@ func Test_OtherHeaders(t *testing.T) {
 	}
 }
 
+func Test_DefaultAllowHeaders(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	m := martini.New()
+	m.Use(Allow(&Options{
+		AllowAllOrigins: true,
+	}))
+
+	r, _ := http.NewRequest("PUT", "foo", nil)
+	m.ServeHTTP(recorder, r)
+
+	headersVal := recorder.HeaderMap.Get(headerAllowHeaders)
+	if headersVal != "Origin,Accept,Content-Type,Authorization" {
+		t.Errorf("Allow-Headers is expected to be Origin,Accept,Content-Type,Authorization; found %v", headersVal)
+	}
+}
+
 func Test_Preflight(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	m := martini.New()

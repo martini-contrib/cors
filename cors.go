@@ -36,6 +36,8 @@ const (
 	headerRequestHeaders = "Access-Control-Request-Headers"
 )
 
+var defaultAllowHeaders = []string{"Origin", "Accept", "Content-Type", "Authorization"}
+
 // Represents Access Control options.
 type Options struct {
 	// If set, all origins are allowed.
@@ -152,6 +154,10 @@ func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 
 // Allows CORS for requests those match the provided options.
 func Allow(opts *Options) http.HandlerFunc {
+	// Allow default headers if nothing is specified.
+	if len(opts.AllowHeaders) == 0 {
+		opts.AllowHeaders = defaultAllowHeaders
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		var (
 			origin           = req.Header.Get(headerOrigin)
