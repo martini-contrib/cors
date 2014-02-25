@@ -115,9 +115,10 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 	// verify if requested headers are allowed
 	var allowed []string
 	for _, rHeader := range strings.FieldsFunc(rHeaders, func(c rune) bool { return c == ',' || c == ' ' }) {
+		rHeader = strings.ToLower(rHeader)
 	lookupLoop:
 		for _, allowedHeader := range o.AllowHeaders {
-			if rHeader == allowedHeader {
+			if rHeader == strings.ToLower(allowedHeader) {
 				allowed = append(allowed, rHeader)
 				break lookupLoop
 			}
