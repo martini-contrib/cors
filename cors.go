@@ -103,6 +103,17 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 	if !o.AllowAllOrigins && !o.IsOriginAllowed(origin) {
 		return
 	}
+	
+	// add allow origin
+	if o.AllowAllOrigins {
+		headers[headerAllowOrigin] = "*"
+	} else {
+		headers[headerAllowOrigin] = origin
+	}
+
+	// add allow credentials
+	headers[headerAllowCredentials] = strconv.FormatBool(o.AllowCredentials)
+	
 	// verify if requested method is allowed
 	// TODO: Too many for loops
 	for _, method := range o.AllowMethods {
@@ -114,10 +125,11 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 
 	// verify if requested headers are allowed
 	var allowed []string
-	for _, rHeader := range strings.Split(rHeaders, ",") {
+	for _, rHeader := range strings.FieldsFunc(rHeaders, func(c rune) bool { return c == ',' || c == ' ' }) {
+		rHeader = strings.ToLower(rHeader)
 	lookupLoop:
 		for _, allowedHeader := range o.AllowHeaders {
-			if rHeader == allowedHeader {
+			if rHeader == strings.ToLower(allowedHeader) {
 				allowed = append(allowed, rHeader)
 				break lookupLoop
 			}
