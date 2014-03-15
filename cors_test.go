@@ -17,6 +17,7 @@ package cors
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -138,12 +139,12 @@ func Test_Preflight(t *testing.T) {
 	m.Use(Allow(&Options{
 		AllowAllOrigins: true,
 		AllowMethods:    []string{"PUT", "PATCH"},
-		AllowHeaders:    []string{"Origin", "X-whatever"},
+		AllowHeaders:    []string{"Origin", "X-whatever", "X-CaseSensitive"},
 	}))
 
 	r, _ := http.NewRequest("OPTIONS", "foo", nil)
 	r.Header.Add(headerRequestMethod, "PUT")
-	r.Header.Add(headerRequestHeaders, "X-whatever")
+	r.Header.Add(headerRequestHeaders, "X-whatever, x-casesensitive")
 	m.ServeHTTP(recorder, r)
 
 	methodsVal := recorder.HeaderMap.Get(headerAllowMethods)
@@ -154,8 +155,12 @@ func Test_Preflight(t *testing.T) {
 		t.Errorf("Allow-Methods is expected to be PUT,PATCH, found %v", methodsVal)
 	}
 
-	if headersVal != "X-whatever" {
-		t.Errorf("Allow-Headers is expected to be X-whatever, found %v", headersVal)
+	if !strings.Contains(headersVal, "X-whatever") {
+		t.Errorf("Allow-Headers is expected to contain X-whatever, found %v", headersVal)
+	}
+
+	if !strings.Contains(headersVal, "x-casesensitive") {
+		t.Errorf("Allow-Headers is expected to contain x-casesensitive, found %v", headersVal)
 	}
 
 	if originVal != "*" {
