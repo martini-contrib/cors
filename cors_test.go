@@ -148,6 +148,7 @@ func Test_Preflight(t *testing.T) {
 
 	methodsVal := recorder.HeaderMap.Get(headerAllowMethods)
 	headersVal := recorder.HeaderMap.Get(headerAllowHeaders)
+	originVal := recorder.HeaderMap.Get(headerAllowOrigin)
 
 	if methodsVal != "PUT,PATCH" {
 		t.Errorf("Allow-Methods is expected to be PUT,PATCH, found %v", methodsVal)
@@ -155,6 +156,10 @@ func Test_Preflight(t *testing.T) {
 
 	if headersVal != "X-whatever" {
 		t.Errorf("Allow-Headers is expected to be X-whatever, found %v", headersVal)
+	}
+
+	if originVal != "*" {
+		t.Errorf("Allow-Origin is expected to be *, found %v", originVal)
 	}
 }
 

@@ -124,6 +124,13 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 		}
 	}
 
+	// add allow origin
+	if o.AllowAllOrigins {
+		headers[headerAllowOrigin] = "*"
+	} else {
+		headers[headerAllowOrigin] = origin
+	}
+
 	// add allowed headers
 	if len(allowed) > 0 {
 		headers[headerAllowHeaders] = strings.Join(allowed, ",")
