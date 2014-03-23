@@ -17,7 +17,7 @@ func main() {
   // - Origin header
   // - Credentials share
   m.Use(cors.Allow(&cors.Options{
-    AllowOrigins:     []string{"https://foo\\.*"},
+    AllowOrigins:     []string{"https://*.foo.com"},
     AllowMethods:     []string{"PUT", "PATCH"},
     AllowHeaders:     []string{"Origin"},
     ExposeHeaders:    []string{"Content-Length"},
@@ -32,7 +32,7 @@ You may alternatively prefer to allow CORS only for certain routes. Instead of u
 ~~~ go
 m := martini.Classic()
 allowCORSHandler := cors.Allow(&cors.Options{
-  AllowOrigins:     []string{"https://foo\\.*"},
+  AllowOrigins:     []string{"https://*.foo.com"},
   AllowMethods:     []string{"PUT", "PATCH"},
   AllowHeaders:     []string{"Origin"},
 })
