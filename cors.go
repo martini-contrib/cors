@@ -168,7 +168,7 @@ func Allow(opts *Options) http.HandlerFunc {
 	}
 	// Normalize regular expressions.
 	for i, pattern := range opts.AllowOrigins {
-		pattern := regexp.QuoteMeta(pattern)
+		pattern = regexp.QuoteMeta(pattern)
 		pattern = strings.Replace(pattern, "\\*", ".*", -1)
 		pattern = strings.Replace(pattern, "\\?", ".", -1)
 		opts.AllowOrigins[i] = "^" + pattern + "$"
