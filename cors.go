@@ -167,13 +167,11 @@ func Allow(opts *Options) http.HandlerFunc {
 		opts.AllowHeaders = defaultAllowHeaders
 	}
 	// Normalize regular expressions.
-	if len(opts.AllowOrigins) > 0 {
-		for i, pattern := range opts.AllowOrigins {
-			pattern := regexp.QuoteMeta(pattern)
-			pattern = strings.Replace(pattern, "\\*", ".*", -1)
-			pattern = strings.Replace(pattern, "\\?", ".", -1)
-			opts.AllowOrigins[i] = "^" + pattern + "$"
-		}
+	for i, pattern := range opts.AllowOrigins {
+		pattern := regexp.QuoteMeta(pattern)
+		pattern = strings.Replace(pattern, "\\*", ".*", -1)
+		pattern = strings.Replace(pattern, "\\?", ".", -1)
+		opts.AllowOrigins[i] = "^" + pattern + "$"
 	}
 	return func(res http.ResponseWriter, req *http.Request) {
 		var (
