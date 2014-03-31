@@ -36,13 +36,17 @@ const (
 	headerRequestHeaders = "Access-Control-Request-Headers"
 )
 
-var defaultAllowHeaders = []string{"Origin", "Accept", "Content-Type", "Authorization"}
+var (
+	defaultAllowHeaders = []string{"Origin", "Accept", "Content-Type", "Authorization"}
+	// Regex patterns are generated from AllowOrigins. These are used and generated internally.
+	allowOriginPatterns = []string{}
+)
 
 // Represents Access Control options.
 type Options struct {
 	// If set, all origins are allowed.
 	AllowAllOrigins bool
-	// A list of allowed domain patterns.
+	// A list of allowed origins. Wild cards and FQDNs are supported.
 	AllowOrigins []string
 	// If set, allows to share auth credentials such as cookies.
 	AllowCredentials bool
@@ -149,9 +153,9 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 }
 
 // Looks up if the origin matches one of the patterns
-// provided in Options.AllowOrigins patterns.
+// generated from Options.AllowOrigins patterns.
 func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
-	for _, pattern := range o.AllowOrigins {
+	for _, pattern := range allowOriginPatterns {
 		allowed, _ = regexp.MatchString(pattern, origin)
 		if allowed {
 			return
@@ -166,6 +170,14 @@ func Allow(opts *Options) http.HandlerFunc {
 	if len(opts.AllowHeaders) == 0 {
 		opts.AllowHeaders = defaultAllowHeaders
 	}
+
+	for _, origin := range opts.AllowOrigins {
+		pattern := regexp.QuoteMeta(origin)
+		pattern = strings.Replace(pattern, "\\*", ".*", -1)
+		pattern = strings.Replace(pattern, "\\?", ".", -1)
+		allowOriginPatterns = append(allowOriginPatterns, "^"+pattern+"$")
+	}
+
 	return func(res http.ResponseWriter, req *http.Request) {
 		var (
 			origin           = req.Header.Get(headerOrigin)

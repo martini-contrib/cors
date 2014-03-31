@@ -43,10 +43,10 @@ func Test_AllowRegexMatch(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	m := martini.New()
 	m.Use(Allow(&Options{
-		AllowOrigins: []string{"https://aaa.com", "https://foo\\.*"},
+		AllowOrigins: []string{"https://aaa.com", "https://*.foo.com"},
 	}))
 
-	origin := "https://foo.com"
+	origin := "https://bar.foo.com"
 	r, _ := http.NewRequest("PUT", "foo", nil)
 	r.Header.Add("Origin", origin)
 	m.ServeHTTP(recorder, r)
@@ -61,10 +61,10 @@ func Test_AllowRegexNoMatch(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	m := martini.New()
 	m.Use(Allow(&Options{
-		AllowOrigins: []string{"https://foo\\.*"},
+		AllowOrigins: []string{"https://*.foo.com"},
 	}))
 
-	origin := "https://bar.com"
+	origin := "https://ww.foo.com.evil.com"
 	r, _ := http.NewRequest("PUT", "foo", nil)
 	r.Header.Add("Origin", origin)
 	m.ServeHTTP(recorder, r)
