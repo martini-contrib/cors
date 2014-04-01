@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/codegangsta/martini"
+	"github.com/go-martini/martini"
 )
 
 func Test_AllowAll(t *testing.T) {

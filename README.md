@@ -6,7 +6,7 @@ Martini middleware/handler to enable CORS support.
 
 ~~~ go
 import (
-  "github.com/codegangsta/martini"
+  "github.com/go-martini/martini"
   "github.com/martini-contrib/cors"
 )
 
