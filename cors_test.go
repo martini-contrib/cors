@@ -135,12 +135,16 @@ func Test_DefaultAllowHeaders(t *testing.T) {
 
 func Test_Preflight(t *testing.T) {
 	recorder := httptest.NewRecorder()
-	m := martini.New()
+	m := martini.Classic()
 	m.Use(Allow(&Options{
 		AllowAllOrigins: true,
 		AllowMethods:    []string{"PUT", "PATCH"},
 		AllowHeaders:    []string{"Origin", "X-whatever", "X-CaseSensitive"},
 	}))
+
+	m.Options("foo", func(res http.ResponseWriter) {
+		res.WriteHeader(500)
+	})
 
 	r, _ := http.NewRequest("OPTIONS", "foo", nil)
 	r.Header.Add(headerRequestMethod, "PUT")
@@ -165,6 +169,10 @@ func Test_Preflight(t *testing.T) {
 
 	if originVal != "*" {
 		t.Errorf("Allow-Origin is expected to be *, found %v", originVal)
+	}
+
+	if recorder.Code != http.StatusOK {
+		t.Errorf("Status code is expected to be 200, found %d", recorder.Code)
 	}
 }
 
