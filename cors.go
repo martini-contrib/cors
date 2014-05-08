@@ -16,7 +16,6 @@
 package cors
 
 import (
-	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -64,13 +63,12 @@ type Options struct {
 // Converts options into CORS headers.
 func (o *Options) Header(origin string) (headers map[string]string) {
 	headers = make(map[string]string)
-	// if origin is not alowed, don't extend the headers
+	// if origin is not allowed, don't extend the headers
 	// with CORS headers.
 
-	// if !o.AllowAllOrigins && !o.IsOriginAllowed(origin) {
-	// 	return
-	// }
-	log.Printf("Got here inside cors.go\n")
+	if !o.AllowAllOrigins && !o.IsOriginAllowed(origin) {
+		return
+	}
 
 	// add allow origin
 	if o.AllowAllOrigins {
@@ -169,7 +167,6 @@ func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 
 // Allows CORS for requests those match the provided options.
 func Allow(opts *Options) http.HandlerFunc {
-	log.Printf("Inside Allow in cors\n")
 	// Allow default headers if nothing is specified.
 	if len(opts.AllowHeaders) == 0 {
 		opts.AllowHeaders = defaultAllowHeaders
