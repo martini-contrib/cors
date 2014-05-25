@@ -22,36 +22,31 @@ import (
 	"time"
 
 	"github.com/go-martini/martini"
-	"bytes"
 )
 
 
 type HttpHeaderGuardRecorder struct {
-	httptest.ResponseRecorder
-	SavedHeaderMap http.Header
+	*httptest.ResponseRecorder
+	savedHeaderMap http.Header
 }
 
 
 func NewRecorder() *HttpHeaderGuardRecorder {
-	recorder := &HttpHeaderGuardRecorder{}
-	recorder.HeaderMap = make(http.Header)
-	recorder.Body = new(bytes.Buffer)
-	recorder.Code = 200
-	return recorder
+	return &HttpHeaderGuardRecorder{httptest.NewRecorder(), nil}
 }
 
 
 func (gr* HttpHeaderGuardRecorder) WriteHeader(code int) {
 	gr.ResponseRecorder.WriteHeader(code)
-	gr.SavedHeaderMap = gr.ResponseRecorder.Header()
+	gr.savedHeaderMap = gr.ResponseRecorder.Header()
 }
 
 
 func (gr* HttpHeaderGuardRecorder) Header() http.Header {
-	if gr.SavedHeaderMap != nil {
+	if gr.savedHeaderMap != nil {
 		// headers were written. clone so we don't get updates
 		clone := make(http.Header)
-		for k, v := range gr.SavedHeaderMap {
+		for k, v := range gr.savedHeaderMap {
 			clone[k] = v
 		}
 		return clone
