@@ -63,7 +63,7 @@ type Options struct {
 // Converts options into CORS headers.
 func (o *Options) Header(origin string) (headers map[string]string) {
 	headers = make(map[string]string)
-	// if origin is not alowed, don't extend the headers
+	// if origin is not allowed, don't extend the headers
 	// with CORS headers.
 	if !o.AllowAllOrigins && !o.IsOriginAllowed(origin) {
 		return
@@ -192,10 +192,13 @@ func Allow(opts *Options) http.HandlerFunc {
 			(requestedMethod != "" || requestedHeaders != "") {
 			// TODO: if preflight, respond with exact headers if allowed
 			headers = opts.PreflightHeader(origin, requestedMethod, requestedHeaders)
-			defer res.WriteHeader(http.StatusOK)
-		} else {
-			headers = opts.Header(origin)
+			for key, value := range headers {
+				res.Header().Set(key, value)
+			}
+			res.WriteHeader(http.StatusOK)
+			return
 		}
+		headers = opts.Header(origin)
 
 		for key, value := range headers {
 			res.Header().Set(key, value)
