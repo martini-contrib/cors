@@ -24,6 +24,39 @@ import (
 	"github.com/go-martini/martini"
 )
 
+
+type HttpHeaderGuardRecorder struct {
+	*httptest.ResponseRecorder
+	savedHeaderMap http.Header
+}
+
+
+func NewRecorder() *HttpHeaderGuardRecorder {
+	return &HttpHeaderGuardRecorder{httptest.NewRecorder(), nil}
+}
+
+
+func (gr* HttpHeaderGuardRecorder) WriteHeader(code int) {
+	gr.ResponseRecorder.WriteHeader(code)
+	gr.savedHeaderMap = gr.ResponseRecorder.Header()
+}
+
+
+func (gr* HttpHeaderGuardRecorder) Header() http.Header {
+	if gr.savedHeaderMap != nil {
+		// headers were written. clone so we don't get updates
+		clone := make(http.Header)
+		for k, v := range gr.savedHeaderMap {
+			clone[k] = v
+		}
+		return clone
+	} else {
+		return gr.ResponseRecorder.Header()
+	}
+}
+
+
+
 func Test_AllowAll(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	m := martini.New()
@@ -134,7 +167,7 @@ func Test_DefaultAllowHeaders(t *testing.T) {
 }
 
 func Test_Preflight(t *testing.T) {
-	recorder := httptest.NewRecorder()
+	recorder := NewRecorder()
 	m := martini.Classic()
 	m.Use(Allow(&Options{
 		AllowAllOrigins: true,
@@ -151,9 +184,10 @@ func Test_Preflight(t *testing.T) {
 	r.Header.Add(headerRequestHeaders, "X-whatever, x-casesensitive")
 	m.ServeHTTP(recorder, r)
 
-	methodsVal := recorder.HeaderMap.Get(headerAllowMethods)
-	headersVal := recorder.HeaderMap.Get(headerAllowHeaders)
-	originVal := recorder.HeaderMap.Get(headerAllowOrigin)
+	headers := recorder.Header()
+	methodsVal := headers.Get(headerAllowMethods)
+	headersVal := headers.Get(headerAllowHeaders)
+	originVal := headers.Get(headerAllowOrigin)
 
 	if methodsVal != "PUT,PATCH" {
 		t.Errorf("Allow-Methods is expected to be PUT,PATCH, found %v", methodsVal)
