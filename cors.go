@@ -70,7 +70,7 @@ func (o *Options) Header(origin string) (headers map[string]string) {
 	}
 
 	// add allow origin
-	if o.AllowAllOrigins {
+	if o.AllowAllOrigins || (len(o.AllowOrigins) > 0 && o.AllowOrigins[0] == "*") {
 		headers[headerAllowOrigin] = "*"
 	} else {
 		headers[headerAllowOrigin] = origin
@@ -162,6 +162,14 @@ func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 		}
 	}
 	return
+}
+
+func AllowSimple(origin, methods, headers string) http.HandlerFunc {
+	return Allow(&Options{
+		AllowOrigins: []string{origin},
+		AllowMethods: strings.Split(methods, ","),
+		AllowHeaders: strings.Split(headers, ","),
+	})
 }
 
 // Allows CORS for requests those match the provided options.
