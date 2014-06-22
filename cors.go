@@ -42,7 +42,7 @@ var (
 	allowOriginPatterns = []string{}
 )
 
-// Represents Access Control options.
+// Options represents Access Control options.
 type Options struct {
 	// If set, all origins are allowed.
 	AllowAllOrigins bool
@@ -60,7 +60,7 @@ type Options struct {
 	MaxAge time.Duration
 }
 
-// Converts options into CORS headers.
+// Header converts options into CORS headers.
 func (o *Options) Header(origin string) (headers map[string]string) {
 	headers = make(map[string]string)
 	// if origin is not allowed, don't extend the headers
@@ -101,7 +101,7 @@ func (o *Options) Header(origin string) (headers map[string]string) {
 	return
 }
 
-// Converts options into CORS headers for a preflight response.
+// PreflightHeader converts options into CORS headers for a preflight response.
 func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map[string]string) {
 	headers = make(map[string]string)
 	if !o.AllowAllOrigins && !o.IsOriginAllowed(origin) {
@@ -152,7 +152,7 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 	return
 }
 
-// Looks up if the origin matches one of the patterns
+// IsOriginAllowed looks up if the origin matches one of the patterns
 // generated from Options.AllowOrigins patterns.
 func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 	for _, pattern := range allowOriginPatterns {
@@ -164,7 +164,7 @@ func (o *Options) IsOriginAllowed(origin string) (allowed bool) {
 	return
 }
 
-// Allows CORS for requests those match the provided options.
+// Allow enables CORS for requests those match the provided options.
 func Allow(opts *Options) http.HandlerFunc {
 	// Allow default headers if nothing is specified.
 	if len(opts.AllowHeaders) == 0 {
