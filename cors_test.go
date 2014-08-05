@@ -233,9 +233,14 @@ func Test_PreflightCredentials(t *testing.T) {
 	m.ServeHTTP(recorder, r)
 
 	headers := recorder.Header()
+	credentialsVal := recorder.HeaderMap.Get(headerAllowCredentials)
 	methodsVal := headers.Get(headerAllowMethods)
 	headersVal := headers.Get(headerAllowHeaders)
 	originVal := headers.Get(headerAllowOrigin)
+
+	if credentialsVal != "true" {
+		t.Errorf("Allow-Credentials is expected to be true, found %v", credentialsVal)
+	}
 
 	if methodsVal != "PUT,PATCH" {
 		t.Errorf("Allow-Methods is expected to be PUT,PATCH, found %v", methodsVal)
