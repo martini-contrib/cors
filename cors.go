@@ -70,7 +70,7 @@ func (o *Options) Header(origin string) (headers map[string]string) {
 	}
 
 	// add allow origin
-	if o.AllowAllOrigins {
+	if o.AllowAllOrigins && !o.AllowCredentials {
 		headers[headerAllowOrigin] = "*"
 	} else {
 		headers[headerAllowOrigin] = origin
@@ -131,11 +131,14 @@ func (o *Options) PreflightHeader(origin, rMethod, rHeaders string) (headers map
 
 	headers[headerAllowCredentials] = strconv.FormatBool(o.AllowCredentials)
 	// add allow origin
-	if o.AllowAllOrigins {
+	if o.AllowAllOrigins && !o.AllowCredentials {
 		headers[headerAllowOrigin] = "*"
 	} else {
 		headers[headerAllowOrigin] = origin
 	}
+
+	// add allow credentials
+	headers[headerAllowCredentials] = strconv.FormatBool(o.AllowCredentials)
 
 	// add allowed headers
 	if len(allowed) > 0 {

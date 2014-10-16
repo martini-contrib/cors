@@ -24,25 +24,21 @@ import (
 	"github.com/go-martini/martini"
 )
 
-
 type HttpHeaderGuardRecorder struct {
 	*httptest.ResponseRecorder
 	savedHeaderMap http.Header
 }
 
-
 func NewRecorder() *HttpHeaderGuardRecorder {
 	return &HttpHeaderGuardRecorder{httptest.NewRecorder(), nil}
 }
 
-
-func (gr* HttpHeaderGuardRecorder) WriteHeader(code int) {
+func (gr *HttpHeaderGuardRecorder) WriteHeader(code int) {
 	gr.ResponseRecorder.WriteHeader(code)
 	gr.savedHeaderMap = gr.ResponseRecorder.Header()
 }
 
-
-func (gr* HttpHeaderGuardRecorder) Header() http.Header {
+func (gr *HttpHeaderGuardRecorder) Header() http.Header {
 	if gr.savedHeaderMap != nil {
 		// headers were written. clone so we don't get updates
 		clone := make(http.Header)
@@ -54,8 +50,6 @@ func (gr* HttpHeaderGuardRecorder) Header() http.Header {
 		return gr.ResponseRecorder.Header()
 	}
 }
-
-
 
 func Test_AllowAll(t *testing.T) {
 	recorder := httptest.NewRecorder()
@@ -121,6 +115,8 @@ func Test_OtherHeaders(t *testing.T) {
 	}))
 
 	r, _ := http.NewRequest("PUT", "foo", nil)
+	testOrigin := "test-origin"
+	r.Header.Add("origin", testOrigin)
 	m.ServeHTTP(recorder, r)
 
 	credentialsVal := recorder.HeaderMap.Get(headerAllowCredentials)
@@ -128,6 +124,7 @@ func Test_OtherHeaders(t *testing.T) {
 	headersVal := recorder.HeaderMap.Get(headerAllowHeaders)
 	exposedHeadersVal := recorder.HeaderMap.Get(headerExposeHeaders)
 	maxAgeVal := recorder.HeaderMap.Get(headerMaxAge)
+	originVal := recorder.HeaderMap.Get(headerAllowOrigin)
 
 	if credentialsVal != "true" {
 		t.Errorf("Allow-Credentials is expected to be true, found %v", credentialsVal)
@@ -147,6 +144,10 @@ func Test_OtherHeaders(t *testing.T) {
 
 	if maxAgeVal != "300" {
 		t.Errorf("Max-Age is expected to be 300, found %v", maxAgeVal)
+	}
+
+	if originVal != testOrigin {
+		t.Errorf("Origin is expected to be %v, found %v", testOrigin, originVal)
 	}
 }
 
@@ -203,6 +204,58 @@ func Test_Preflight(t *testing.T) {
 
 	if originVal != "*" {
 		t.Errorf("Allow-Origin is expected to be *, found %v", originVal)
+	}
+
+	if recorder.Code != http.StatusOK {
+		t.Errorf("Status code is expected to be 200, found %d", recorder.Code)
+	}
+}
+
+func Test_PreflightCredentials(t *testing.T) {
+	recorder := NewRecorder()
+	m := martini.Classic()
+	m.Use(Allow(&Options{
+		AllowAllOrigins:  true,
+		AllowCredentials: true,
+		AllowMethods:     []string{"PUT", "PATCH"},
+		AllowHeaders:     []string{"Origin", "X-whatever", "X-CaseSensitive"},
+	}))
+
+	m.Options("foo", func(res http.ResponseWriter) {
+		res.WriteHeader(500)
+	})
+
+	r, _ := http.NewRequest("OPTIONS", "foo", nil)
+	testOrigin := "test-origin"
+	r.Header.Add(headerOrigin, testOrigin)
+	r.Header.Add(headerRequestMethod, "PUT")
+	r.Header.Add(headerRequestHeaders, "X-whatever, x-casesensitive")
+	m.ServeHTTP(recorder, r)
+
+	headers := recorder.Header()
+	credentialsVal := recorder.HeaderMap.Get(headerAllowCredentials)
+	methodsVal := headers.Get(headerAllowMethods)
+	headersVal := headers.Get(headerAllowHeaders)
+	originVal := headers.Get(headerAllowOrigin)
+
+	if credentialsVal != "true" {
+		t.Errorf("Allow-Credentials is expected to be true, found %v", credentialsVal)
+	}
+
+	if methodsVal != "PUT,PATCH" {
+		t.Errorf("Allow-Methods is expected to be PUT,PATCH, found %v", methodsVal)
+	}
+
+	if !strings.Contains(headersVal, "X-whatever") {
+		t.Errorf("Allow-Headers is expected to contain X-whatever, found %v", headersVal)
+	}
+
+	if !strings.Contains(headersVal, "x-casesensitive") {
+		t.Errorf("Allow-Headers is expected to contain x-casesensitive, found %v", headersVal)
+	}
+
+	if originVal != testOrigin {
+		t.Errorf("Allow-Origin is expected to be %v, found %v", testOrigin, originVal)
 	}
 
 	if recorder.Code != http.StatusOK {
