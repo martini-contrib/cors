@@ -215,7 +215,7 @@ func Benchmark_WithoutCORS(b *testing.B) {
 	m := martini.New()
 
 	b.ResetTimer()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < b.N; i++ {
 		r, _ := http.NewRequest("PUT", "foo", nil)
 		m.ServeHTTP(recorder, r)
 	}
@@ -233,7 +233,7 @@ func Benchmark_WithCORS(b *testing.B) {
 	}))
 
 	b.ResetTimer()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < b.N; i++ {
 		r, _ := http.NewRequest("PUT", "foo", nil)
 		m.ServeHTTP(recorder, r)
 	}
